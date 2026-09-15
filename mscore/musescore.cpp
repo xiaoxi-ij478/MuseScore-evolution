@@ -5198,7 +5198,7 @@ void MuseScore::dirtyChanged(Score* s)
             }
       QString label(score->fileInfo()->completeBaseName());
       if (score->dirty())
-            label += "*";
+            label = label.prepend("*");
       tab1->setTabText(idx, label);
       if (tab2)
             tab2->setTabText(idx, label);
@@ -7283,7 +7283,7 @@ void MuseScore::updateWindowTitle(Score* score)
       else
             setWindowFilePath(score->masterScore()->fileInfo()->absoluteFilePath());
 #else
-      setWindowTitle(MUSESCORE_NAME_VERSION ": " + scoreTitle + "[*]");
+      setWindowTitle("[*]" + scoreTitle + " - " MUSESCORE_NAME_VERSION);
 #endif
       }
 
@@ -8453,8 +8453,8 @@ void MuseScore::init(QStringList& argv)
       gscore->setMovements(new Movements());
       gscore->setStyle(MScore::baseStyle());
 
-      gscore->style().set(Sid::musicalTextFont, QString("Leland Text"));
-      ScoreFont* scoreFont = ScoreFont::fontFactory("Leland");
+      gscore->style().set(Sid::musicalTextFont, QString("MScore Text"));
+      ScoreFont* scoreFont = ScoreFont::fontFactory("Emmentaler");
       gscore->setScoreFont(scoreFont);
       gscore->setNoteHeadWidth(scoreFont->width(SymId::noteheadBlack, gscore->spatium()) / SPATIUM20);
 

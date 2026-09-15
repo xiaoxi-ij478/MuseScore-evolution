@@ -409,7 +409,7 @@ if (MINGW)
    if (OMR)
       target_link_libraries(mscoreapp omr poppler-qt5)
       if (OCR)
-            target_link_libraries(mscoreapp tesseract_api)
+            target_link_libraries(mscoreapp tesseract)
       endif (OCR)
    endif (OMR)
 
@@ -448,16 +448,24 @@ else (MINGW)
          target_link_libraries(mscoreapp ${PULSEAUDIO_LIBRARY})
        endif (USE_PULSEAUDIO)
 
-      set_target_properties (
-         mscoreapp
-         PROPERTIES
-            COMPILE_FLAGS "-g -Wall -Wno-overloaded-virtual -Winvalid-pch"
-         )
+       if(CMAKE_BUILD_TYPE MATCHES "DEBUG")
+         set_target_properties (
+           mscoreapp
+           PROPERTIES
+              COMPILE_FLAGS "-g -Wall -Wno-overloaded-virtual -Winvalid-pch"
+           )
+       else()
+         set_target_properties (
+           mscoreapp
+           PROPERTIES
+              COMPILE_FLAGS "-O2 -Wall -Wno-overloaded-virtual -Winvalid-pch"
+           )
+       endif()
 
       if (OMR)
          target_link_libraries(mscoreapp omr poppler-qt5)
          if (OCR)
-               target_link_libraries(mscoreapp tesseract_api)
+               target_link_libraries(mscoreapp tesseract)
          endif (OCR)
       endif (OMR)
 
@@ -517,7 +525,7 @@ else (MINGW)
       if (OMR)
          target_link_libraries(mscoreapp omr poppler-qt5)
          if (OCR)
-               target_link_libraries(mscoreapp tesseract_api)
+               target_link_libraries(mscoreapp tesseract)
          endif (OCR)
       endif (OMR)
 

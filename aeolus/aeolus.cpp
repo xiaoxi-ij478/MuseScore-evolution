@@ -28,9 +28,10 @@ namespace Ms {
       extern QString mscoreGlobalShare;
       };
 
-#include "synthesizer/event.h"
+#include "audio/midi/event.h"
 #include "libmscore/xml.h"
 #include "sparm_p.h"
+#include <cstring>
 
 const std::vector<ParDescr> Aeolus::pd = {
       { A_VOLUME,  "volume",  true, 0.32f,   0.00f,  1.00f },
@@ -70,16 +71,16 @@ Aeolus::Aeolus() : Synthesizer()
       _fsamp = 0.0f;
       _fsize = 0;
       _ifc_init = nullptr;
-      _midimap = { 0 };
-      _asectp = { nullptr };
-      _divisp = { nullptr };
-      _keymap = { 0 };
-      _audiopar = { 0.0f };
-      routb = { 0.0f };
-      loutb = { 0.0f };
-      _asectpar = { nullptr };
-      _ifelms = { 0 };
-      _tempstr = { 0 };
+      bzero(_midimap, sizeof(_midimap));
+      bzero(_asectp, sizeof(_asectp));
+      bzero(_divisp, sizeof(_divisp));
+      bzero(_keymap, sizeof(_keymap));
+      bzero(_audiopar, sizeof(_audiopar));
+      bzero(routb, sizeof(routb));
+      bzero(loutb, sizeof(loutb));
+      bzero(_asectpar, sizeof(_asectpar));
+      bzero(_ifelms, sizeof(_ifelms));
+      bzero(_tempstr, sizeof(_tempstr));
       }
 
 Aeolus::~Aeolus()

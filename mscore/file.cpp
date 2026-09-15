@@ -85,6 +85,7 @@
 #ifdef OMR
 #include "omr/omr.h"
 #include "omr/omrpage.h"
+#include "omr/importpdf.h"
 #endif
 
 #include "scorecmp/scorecmp.h"

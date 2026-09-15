@@ -22,6 +22,7 @@
 
 #include <functional>
 #include <QString>
+#include "config.h"
 #include "ret.h"
 
 namespace Ms {

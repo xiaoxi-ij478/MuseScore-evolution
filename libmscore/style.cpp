@@ -417,8 +417,8 @@ static const StyleType styleTypes[] {
       { Sid::useSolfeggioNoteNames,   "useSolfeggioNoteNames",   QVariant(false) },
       { Sid::useFrenchNoteNames,      "useFrenchNoteNames",      QVariant(false) },
       { Sid::automaticCapitalization, "automaticCapitalization", QVariant(true) },
-      { Sid::lowerCaseMinorChords,    "lowerCaseMinorChords",    QVariant(false) },
-      { Sid::lowerCaseBassNotes,      "lowerCaseBassNotes",      QVariant(false) },
+      { Sid::lowerCaseMinorChords,    "lowerCaseMinorChords",    QVariant(true) },
+      { Sid::lowerCaseBassNotes,      "lowerCaseBassNotes",      QVariant(true) },
       { Sid::allCapsNoteNames,        "allCapsNoteNames",        QVariant(false) },
       { Sid::chordStyle,              "chordStyle",              QVariant(QString("std")) },
       { Sid::chordsXmlFile,           "chordsXmlFile",           QVariant(false) },
@@ -464,8 +464,8 @@ static const StyleType styleTypes[] {
       { Sid::slurMinDistance,         "slurMinDistance",         Spatium(0.5) },
       { Sid::tieMinDistance,          "tieMinDistance",          Spatium(0.5) },
       { Sid::sectionPause,            "sectionPause",            QVariant(qreal(3.0)) },
-      { Sid::musicalSymbolFont,       "musicalSymbolFont",       QVariant(QString("Leland")) },
-      { Sid::musicalTextFont,         "musicalTextFont",         QVariant(QString("Leland Text")) },
+      { Sid::musicalSymbolFont,       "musicalSymbolFont",       QVariant(QString("Emmentaler")) },
+      { Sid::musicalTextFont,         "musicalTextFont",         QVariant(QString("MScore Text")) },
 
       { Sid::showHeader,              "showHeader",              QVariant(true) },
       { Sid::headerFirstPage,         "headerFirstPage",         QVariant(false) },
@@ -561,7 +561,7 @@ static const StyleType styleTypes[] {
       { Sid::ottavaFrameFgColor,      "ottavaFrameFgColor",      QColor(0, 0, 0, 255) },
       { Sid::ottavaFrameBgColor,      "ottavaFrameBgColor",      QColor(255, 255, 255, 0) },
 
-      { Sid::tabClef,                 "tabClef",                 QVariant(int(ClefType::TAB)) },
+      { Sid::tabClef,                 "tabClef",                 QVariant(int(ClefType::TAB_SERIF)) },
 
       { Sid::tremoloWidth,            "tremoloWidth",            Spatium(1.2) },  // tremolo stroke width: notehead width
       { Sid::tremoloBoxHeight,        "tremoloBoxHeight",        Spatium(0.65) },

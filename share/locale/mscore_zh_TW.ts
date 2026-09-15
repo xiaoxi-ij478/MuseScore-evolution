@@ -21276,7 +21276,7 @@ Visit the %1MuseScore website%2 to obtain the latest version.</source>
     <message>
         <location filename="../../libmscore/note.cpp" line="942"/>
         <source>%1 (sounding as %2%3)</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 (像 %2%3 一樣發聲)</translation>
     </message>
     <message>
         <location filename="../../libmscore/note.cpp" line="2395"/>
@@ -21314,7 +21314,7 @@ Visit the %1MuseScore website%2 to obtain the latest version.</source>
     <message>
         <location filename="../../libmscore/note.cpp" line="3223"/>
         <source> (on %1‰ off %2‰)</source>
-        <translation type="unfinished"></translation>
+        <translation> (開 %1‰ 關 %2‰)</translation>
     </message>
     <message>
         <location filename="../../libmscore/note.cpp" line="3227"/>
@@ -21335,7 +21335,7 @@ Visit the %1MuseScore website%2 to obtain the latest version.</source>
     <message>
         <location filename="../../libmscore/note.cpp" line="3234"/>
         <source>%1; Pitch: %2; Duration: %3%4%5</source>
-        <translation type="unfinished"></translation>
+        <translation>%1; 音高: %2; 時值: %3%4%5</translation>
     </message>
     <message>
         <location filename="../../libmscore/note.cpp" line="3250"/>

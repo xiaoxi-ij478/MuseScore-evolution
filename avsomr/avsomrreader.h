@@ -25,7 +25,7 @@
 #include <QList>
 #include <QSet>
 #include <QColor>
-
+#include "config.h"
 #include "avsomr.h"
 
 class QXmlStreamReader;

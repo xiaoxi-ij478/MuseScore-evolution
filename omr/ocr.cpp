@@ -41,7 +41,7 @@ void Ocr::init()
       {
       if (tess == 0)
             tess = new tesseract::TessBaseAPI;
-      tess->Init("/usr/local/share/tessdata", 0, 0, 0, false);
+      tess->Init("/usr/local/share/tessdata", 0);
       }
 
 //---------------------------------------------------------

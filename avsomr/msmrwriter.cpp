@@ -47,7 +47,7 @@ bool MsmrWriter::saveMsmrFile(Ms::MasterScore* score, QIODevice* file, const QFi
 
       QByteArray mscz;
       QBuffer b(&mscz);
-      bool ok = score->saveCompressedFile(&b, info, false, false);
+      bool ok = score->saveCompressedFile(&b, info.filePath(), false, false);
       if (!ok) {
             LOGE() << "failed save mscz file";
             return false;

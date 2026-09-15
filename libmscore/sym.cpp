@@ -6579,15 +6579,15 @@ void Ms::ScoreFont::initScoreFonts()
             }
       for (oldName i : qAsConst(oldNames))
             Sym::lonhash.insert(i.name, SymId(i.symId));
-      QFont::insertSubstitution("Leland Text",    "Bravura Text");
-      QFont::insertSubstitution("Bravura Text",   "Leland Text");
-      QFont::insertSubstitution("MScore Text",    "Leland Text");
-      QFont::insertSubstitution("Gootville Text", "Leland Text");
-      QFont::insertSubstitution("MuseJazz Text",  "Leland Text");
+      QFont::insertSubstitution("MScore Text",    "Bravura Text");
+      QFont::insertSubstitution("Bravura Text",   "MScore Text");
+      QFont::insertSubstitution("Leland Text",    "MScore Text");
+      QFont::insertSubstitution("Gootville Text", "MScore Text");
+      QFont::insertSubstitution("MuseJazz Text",  "MScore Text");
       QFont::insertSubstitution("Petaluma Text",  "MuseJazz Text");
-      QFont::insertSubstitution("Finale Maestro Text",  "Leland Text");
+      QFont::insertSubstitution("Finale Maestro Text",  "MScore Text");
       QFont::insertSubstitution("Finale Broadway Text",  "MuseJazz Text");
-      QFont::insertSubstitution("ScoreFont",      "Leland Text"); // alias for current Musical Text Font
+      QFont::insertSubstitution("ScoreFont",      "MScore Text"); // alias for current Musical Text Font
       ScoreFont::fallbackFont();   // load fallback font
 
       QString privateFontsPath = preferences.getString(PREF_APP_PATHS_MYSCOREFONTS);

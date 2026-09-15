@@ -22,12 +22,12 @@
 
 #if defined __cplusplus
 
-#include <stdio.h>
-#include <limits.h>
+#include <cstdio>
+#include <climits>
 #include <map>
 #include <set>
 #include <deque>
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
 // VStudio does not have <unistd.h>, <io.h> & <process.h> replace many functions from it...
 #if (defined (_MSCVER) || defined (_MSC_VER))
@@ -36,7 +36,7 @@
 #else
    #include <unistd.h>
 #endif
-#include <math.h>
+#include <cmath>
 #include <array>
 #include <functional>
 #include <memory>

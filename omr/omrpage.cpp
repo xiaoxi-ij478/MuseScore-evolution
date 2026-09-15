@@ -1069,7 +1069,7 @@ static void addText(Score* score, int subtype, const QString& s)
 //   readHeader
 //---------------------------------------------------------
 
-void OmrPage::readHeader(Score*)
+void OmrPage::readHeader(Score* score)
       {
       if (_slices.isEmpty())
             return;
@@ -1077,7 +1077,7 @@ void OmrPage::readHeader(Score*)
 
       int slice = 0;
       double maxH = 0.0;
-      //      int maxIdx;
+      int maxIdx;
       for (; slice < _slices.size(); ++slice) {
             double h = _slices[slice].height();
 
@@ -1085,7 +1085,7 @@ void OmrPage::readHeader(Score*)
                   break;
             if (h > maxH) {
                   maxH = h;
-                  //                  maxIdx = slice;
+                  maxIdx = slice;
                   }
             }
 #ifdef OCR
@@ -1094,8 +1094,8 @@ void OmrPage::readHeader(Score*)
       //
       OcrImage img = OcrImage(_image.bits(), _slices[maxIdx], (_image.width() + 31) / 32);
       QString s = _omr->ocr()->readLine(img).trimmed();
-      if (!s.isEmpty())
-            score->addText("title", s);
+      //if (!s.isEmpty())
+            //score->addText("title", s);
 
       QString subTitle;
       for (int i = maxIdx + 1; i < slice; ++i) {
@@ -1107,8 +1107,8 @@ void OmrPage::readHeader(Score*)
                   subTitle += s;
                   }
             }
-      if (!subTitle.isEmpty())
-            score->addText("subtitle", subTitle);
+      //if (!subTitle.isEmpty())
+            //score->addText("subtitle", subTitle);
 #endif
 #if 0
       OcrImage img = OcrImage(_image.bits(), _slices[0], (_image.width() + 31) / 32);

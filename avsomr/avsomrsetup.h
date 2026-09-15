@@ -21,6 +21,7 @@
 #define AVS_AVSOMRSETUP_H
 
 #include "global/interfaces/abstractmodulesetup.h"
+#include "config.h"
 
 namespace Ms {
 namespace Avs {

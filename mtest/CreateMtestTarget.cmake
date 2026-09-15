@@ -41,7 +41,7 @@ target_link_libraries(
 if (OMR)
       target_link_libraries(${TARGET} omr poppler-qt5)
       if (OCR)
-            target_link_libraries(${TARGET} tesseract_api)
+            target_link_libraries(${TARGET} tesseract)
       endif (OCR)
 endif (OMR)
 

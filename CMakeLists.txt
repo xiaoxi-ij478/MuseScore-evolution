@@ -128,7 +128,7 @@ option(BUILD_LAME    "Enable MP3 export"                  ON)  # Requires libmp3
 option(DOWNLOAD_SOUNDFONT "Download the latest soundfont version as part of the build process" ON)
 
 # licence incompatibility, must never be distributed
-set(OCR OFF)
+#set(OCR OFF)
 
 SET(JACK_LONGNAME "JACK (Jack Audio Connection Kit)")
 SET(JACK_MIN_VERSION "0.98.0")
@@ -323,7 +323,7 @@ endif (MINGW OR MSVC OR APPLE)
 # Download MuseScore SoundFont
 if (DOWNLOAD_SOUNDFONT)
   set (SF_VERSION_REMOTE_FILE ${PROJECT_BINARY_DIR}/SF_VERSION)
-  set (SF_VERSION_LOCAL_FILE ${PROJECT_SOURCE_DIR}/share/sound/VERSION)
+  set (SF_VERSION_LOCAL_FILE ${PROJECT_SOURCE_DIR}/share/sound/SF_VERSION)
   set (DOWNLOAD_URL_ROOT "https://ftp.osuosl.org/pub/musescore/soundfont/MuseScore_General")
   set (SOUND_DIRECTORY ${PROJECT_SOURCE_DIR}/share/sound)
 

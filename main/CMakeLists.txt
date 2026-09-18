@@ -108,13 +108,13 @@ if (MINGW)
    if(CMAKE_BUILD_TYPE MATCHES "DEBUG")
      set_target_properties( mscore
         PROPERTIES
-           COMPILE_FLAGS "-g -Wall -Wextra -Winvalid-pch ${QT_DEFINITIONS} -DQT_SVG_LIB -DQT_GUI_LIB -DQT_XML_LIB -DQT_CORE_LIB"
+           COMPILE_FLAGS "-ggdb3 -Wall -Wextra -Winvalid-pch ${QT_DEFINITIONS} -DQT_SVG_LIB -DQT_GUI_LIB -DQT_XML_LIB -DQT_CORE_LIB"
            LINK_FLAGS "-mwindows -mconsole -L ${QT_INSTALL_LIBS}"
         )
    else(CMAKE_BUILD_TYPE MATCHES "DEBUG")
      set_target_properties( mscore
           PROPERTIES
-             COMPILE_FLAGS "-Wall -Wextra -Winvalid-pch ${QT_DEFINITIONS} -DQT_SVG_LIB -DQT_GUI_LIB -DQT_XML_LIB -DQT_CORE_LIB"
+             COMPILE_FLAGS "-O2 -Wall -Wextra -Winvalid-pch ${QT_DEFINITIONS} -DQT_SVG_LIB -DQT_GUI_LIB -DQT_XML_LIB -DQT_CORE_LIB"
              LINK_FLAGS "-Wl,-S -mwindows -L ${QT_INSTALL_LIBS}"
           )
    endif(CMAKE_BUILD_TYPE MATCHES "DEBUG")
@@ -228,11 +228,19 @@ if (MINGW)
 else (MINGW)
 
    if ( NOT MSVC )
+   if(CMAKE_BUILD_TYPE MATCHES "DEBUG")
       set_target_properties (
          mscore
          PROPERTIES
-            COMPILE_FLAGS "-g -Wall -Wno-overloaded-virtual -Winvalid-pch"
+            COMPILE_FLAGS "-ggdb3 -Wall -Wno-overloaded-virtual -Winvalid-pch"
          )
+   else(CMAKE_BUILD_TYPE MATCHES "DEBUG")
+      set_target_properties (
+         mscore
+         PROPERTIES
+            COMPILE_FLAGS "-O2 -Wall -Wno-overloaded-virtual -Winvalid-pch"
+         )
+   endif(CMAKE_BUILD_TYPE MATCHES "DEBUG")
 
       if (APPLE)
         target_link_libraries(mscore ${OsxFrameworks})

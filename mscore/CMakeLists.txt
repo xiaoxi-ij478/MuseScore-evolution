@@ -388,13 +388,13 @@ if (MINGW)
    if(CMAKE_BUILD_TYPE MATCHES "DEBUG")
      set_target_properties( mscoreapp
         PROPERTIES
-           COMPILE_FLAGS "-g -Wall -Wextra -Winvalid-pch ${QT_DEFINITIONS} -DQT_SVG_LIB -DQT_GUI_LIB -DQT_XML_LIB -DQT_CORE_LIB"
+           COMPILE_FLAGS "-ggdb3 -Wall -Wextra -Winvalid-pch ${QT_DEFINITIONS} -DQT_SVG_LIB -DQT_GUI_LIB -DQT_XML_LIB -DQT_CORE_LIB"
            LINK_FLAGS "-mwindows -mconsole -L ${QT_INSTALL_LIBS}"
         )
    else(CMAKE_BUILD_TYPE MATCHES "DEBUG")
      set_target_properties( mscoreapp
           PROPERTIES
-             COMPILE_FLAGS "-Wall -Wextra -Winvalid-pch ${QT_DEFINITIONS} -DQT_SVG_LIB -DQT_GUI_LIB -DQT_XML_LIB -DQT_CORE_LIB"
+             COMPILE_FLAGS "-O2 -Wall -Wextra -Winvalid-pch ${QT_DEFINITIONS} -DQT_SVG_LIB -DQT_GUI_LIB -DQT_XML_LIB -DQT_CORE_LIB"
              LINK_FLAGS "-Wl,-S -mwindows -L ${QT_INSTALL_LIBS}"
           )
    endif(CMAKE_BUILD_TYPE MATCHES "DEBUG")
@@ -452,7 +452,7 @@ else (MINGW)
          set_target_properties (
            mscoreapp
            PROPERTIES
-              COMPILE_FLAGS "-g -Wall -Wno-overloaded-virtual -Winvalid-pch"
+              COMPILE_FLAGS "-ggdb3 -Wall -Wno-overloaded-virtual -Winvalid-pch"
            )
        else()
          set_target_properties (

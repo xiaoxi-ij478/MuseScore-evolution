@@ -20,7 +20,11 @@ add_executable(
 target_link_libraries(genft ${QT_LIBRARIES} -lfreetype)
 
 if (NOT MSVC)
-   set_target_properties(genft PROPERTIES COMPILE_FLAGS "-I/usr/include/freetype2 -g -Wall -Wextra -Winvalid-pch")
+   if(CMAKE_BUILD_TYPE MATCHES "DEBUG")
+   set_target_properties(genft PROPERTIES COMPILE_FLAGS "-I/usr/include/freetype2 -ggdb3 -Wall -Wextra -Winvalid-pch")
+   else(CMAKE_BUILD_TYPE MATCHES "DEBUG")
+   set_target_properties(genft PROPERTIES COMPILE_FLAGS "-I/usr/include/freetype2 -O2 -Wall -Wextra -Winvalid-pch")
+   endif(CMAKE_BUILD_TYPE MATCHES "DEBUG")
 else (NOT MSVC)
    set_target_properties (
       genft

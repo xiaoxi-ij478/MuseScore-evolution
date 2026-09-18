@@ -13,9 +13,15 @@
 add_executable (smf2xml smf2xml.cpp xmlwriter.cpp midifile.cpp)
 
 if (NOT MSVC)
+   if(CMAKE_BUILD_TYPE MATCHES "DEBUG")
    set_target_properties(smf2xml
-      PROPERTIES COMPILE_FLAGS "-g -Wall -Wextra"
+      PROPERTIES COMPILE_FLAGS "-ggdb3 -Wall -Wextra"
       )
+    else()
+   set_target_properties(smf2xml
+      PROPERTIES COMPILE_FLAGS "-O2 -Wall -Wextra"
+      )
+    endif()
 else (NOT MSVC)
    set_target_properties (smf2xml
       PROPERTIES COMPILE_FLAGS ""
@@ -29,10 +35,15 @@ target_link_libraries(smf2xml
 add_executable (xml2smf xml2smf.cpp xmlreader.cpp midifile.cpp)
 
 if (NOT MSVC)
-   set_target_properties (
-      xml2smf
-      PROPERTIES COMPILE_FLAGS "-g -Wall -Wextra"
+   if(CMAKE_BUILD_TYPE MATCHES "DEBUG")
+   set_target_properties(xml2smf
+      PROPERTIES COMPILE_FLAGS "-ggdb3 -Wall -Wextra"
       )
+    else()
+   set_target_properties(xml2smf
+      PROPERTIES COMPILE_FLAGS "-O2 -Wall -Wextra"
+      )
+    endif()
 else (NOT MSVC)
    set_target_properties (
       xml2smf

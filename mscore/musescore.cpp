@@ -12,12 +12,21 @@
 
 #include "musescore.h"
 
+#include <QCheckBox>
+#include <QComboBox>
 #include <QDir>
+#include <QGridLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QSpinBox>
 #include <QStandardPaths>
 #include <QStyleFactory>
+#include <QTimer>
+#include <QWidgetAction>
 
 #include "accessibletoolbutton.h"
 #include "config.h"
+#include "debuglog.h"
 #include "drumroll.h"
 #include "drumtools.h"
 #include "editraster.h"
@@ -191,8 +200,14 @@ extern Ms::Synthesizer* createZerberus();
 
 #if defined(Q_OS_WIN)
 // for SystemParametersInfo(SPI_GETSCREENREADER), see screenReaderActive()
+// Qt's qt_windows.h may have defined these already (NOMINMAX without a value),
+// so only define what is missing, to not warn about redefining them
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
 #define NOMINMAX 1
+#endif
 #include <windows.h>
 #endif
 
@@ -311,6 +326,7 @@ const std::list<const char*> MuseScore::_allPlaybackControlEntries {
             "loop",
             "",
             "repeat",
+            "independent-metronome",
             "pan",
             "metronome",
             "playback-highlight",
@@ -1078,6 +1094,7 @@ void MuseScore::populateFileOperations()
 
       viewModeCombo->setAccessibleName(tr("View Mode"));
       viewModeCombo->addItem(tr("Page View"), int(LayoutMode::PAGE));
+      viewModeCombo->addItem(tr("Double Page"), int(LayoutMode::DOUBLE_PAGE));
       viewModeCombo->addItem(tr("Continuous View"), int(LayoutMode::LINE));
       viewModeCombo->addItem(tr("Single Page"), int(LayoutMode::SYSTEM));
       if (enableExperimental)
@@ -1115,6 +1132,193 @@ void MuseScore::populatePlaybackControls()
                   else if (QString(s) == "play") {
                         _playButton = new AccessibleToolButton(transportTools, getAction("play"));
                         transportTools->addWidget(_playButton);
+                        }
+                  else if (QString(s) == "independent-metronome") {
+                        QAction* action = getAction("independent-metronome");
+
+                        AccessibleToolButton* button =
+                              new AccessibleToolButton(transportTools, action);
+
+                        if (!seq) {
+                              // Skip the independent metronome if some non-GUI or
+                              // test configuration constructed MuseScore without
+                              // creating a sequencer
+                              transportTools->addWidget(button);
+                              continue;
+                              }
+
+                        QMenu* menu = new QMenu(button);
+
+                        QWidget* settingsWidget = new QWidget(menu);
+                        QGridLayout* settingsLayout =
+                              new QGridLayout(settingsWidget);
+                        settingsLayout->setContentsMargins(8, 4, 8, 4);
+
+                        QLabel* tempoLabel =
+                              new QLabel(tr("BPM:"), settingsWidget);
+
+                        QSpinBox* tempoSpin =
+                              new QSpinBox(settingsWidget);
+                        tempoSpin->setRange(20, 400);
+                        tempoSpin->setValue(
+                              qRound(seq->independentMetronomeBpm()));
+                        tempoSpin->setKeyboardTracking(false);
+                        tempoSpin->setToolTip(
+                              tr("Tempo in quarter notes per minute"));
+                        tempoLabel->setToolTip(tempoSpin->toolTip());
+
+                        QLabel* timeSigLabel =
+                              new QLabel(tr("Time signature:"), settingsWidget);
+
+                        QSpinBox* numeratorSpin =
+                              new QSpinBox(settingsWidget);
+                        numeratorSpin->setRange(1, 32);
+                        numeratorSpin->setValue(
+                              seq->independentMetronomeNumerator());
+                        numeratorSpin->setKeyboardTracking(false);
+
+                        QLabel* slashLabel =
+                              new QLabel("/", settingsWidget);
+
+                        QComboBox* denominatorCombo =
+                              new QComboBox(settingsWidget);
+                        denominatorCombo->addItem("1",   1);
+                        denominatorCombo->addItem("2",   2);
+                        denominatorCombo->addItem("4",   4);
+                        denominatorCombo->addItem("8",   8);
+                        denominatorCombo->addItem("16", 16);
+                        denominatorCombo->addItem("32", 32);
+                        denominatorCombo->addItem("64", 64);
+                        denominatorCombo->addItem("128", 128);
+
+                        const int denominatorIndex =
+                              denominatorCombo->findData(
+                                    seq->independentMetronomeDenominator());
+
+                        if (denominatorIndex >= 0)
+                              denominatorCombo->setCurrentIndex(
+                                    denominatorIndex);
+
+                        QCheckBox* followPlaybackCheck =
+                              new QCheckBox(tr("Follow score"), settingsWidget);
+
+                        followPlaybackCheck->setChecked(
+                              seq->independentMetronomeFollowPlayback());
+
+                        QCheckBox* beatAccentsCheck =
+                              new QCheckBox(tr("Beat accents"), settingsWidget);
+
+                        beatAccentsCheck->setChecked(
+                              seq->independentMetronomeBeatAccents());
+
+                        beatAccentsCheck->setToolTip(
+                              tr("Use varying strengths for non-downbeat clicks"));
+
+                        settingsLayout->addWidget(tempoLabel,          0, 0);
+                        settingsLayout->addWidget(tempoSpin,           0, 1, 1, 3);
+                        settingsLayout->addWidget(timeSigLabel,        1, 0);
+                        settingsLayout->addWidget(numeratorSpin,       1, 1);
+                        settingsLayout->addWidget(slashLabel,          1, 2);
+                        settingsLayout->addWidget(denominatorCombo,    1, 3);
+                        settingsLayout->addWidget(beatAccentsCheck,    2, 0, 1, 4);
+                        settingsLayout->addWidget(followPlaybackCheck, 3, 0, 1, 4);
+
+                        QWidgetAction* settingsAction =
+                              new QWidgetAction(menu);
+                        settingsAction->setDefaultWidget(settingsWidget);
+                        menu->addAction(settingsAction);
+
+                        QAction* playAction = getAction("play");
+
+                        auto updateIndependentMetronomeFollowUi =
+                              [tempoLabel,
+                               tempoSpin,
+                               timeSigLabel,
+                               numeratorSpin,
+                               slashLabel,
+                               denominatorCombo,
+                               followPlaybackCheck](bool playing) {
+
+                                    const bool following =
+                                          followPlaybackCheck->isChecked()
+                                          && playing;
+
+                                    tempoLabel->setEnabled(!following);
+                                    tempoSpin->setEnabled(!following);
+
+                                    timeSigLabel->setEnabled(!following);
+                                    numeratorSpin->setEnabled(!following);
+                                    slashLabel->setEnabled(!following);
+                                    denominatorCombo->setEnabled(!following);
+
+                                    followPlaybackCheck->setText(
+                                          following ? tr("Following score")
+                                                    : tr("Follow score"));
+                                    };
+
+                        connect(tempoSpin,
+                                QOverload<int>::of(&QSpinBox::valueChanged),
+                                [this](int value) {
+                                      seq->setIndependentMetronomeBpm(value);
+                                      });
+
+                        connect(numeratorSpin,
+                                QOverload<int>::of(&QSpinBox::valueChanged),
+                                [this, numeratorSpin, denominatorCombo](int) {
+                                      seq->setIndependentMetronomeTimeSignature(
+                                            numeratorSpin->value(),
+                                            denominatorCombo->currentData().toInt());
+                                      });
+
+                        connect(denominatorCombo,
+                                QOverload<int>::of(&QComboBox::currentIndexChanged),
+                                [this, numeratorSpin, denominatorCombo](int) {
+                                      seq->setIndependentMetronomeTimeSignature(
+                                            numeratorSpin->value(),
+                                            denominatorCombo->currentData().toInt());
+                                      });
+
+                        connect(followPlaybackCheck,
+                                &QCheckBox::toggled,
+                                settingsWidget,
+                                [this,
+                                 playAction,
+                                 updateIndependentMetronomeFollowUi](bool checked) {
+
+                                      seq->setIndependentMetronomeFollowPlayback(
+                                            checked);
+
+                                      updateIndependentMetronomeFollowUi(
+                                            playAction->isChecked());
+                                      });
+
+                        connect(seq,
+                                &Seq::started,
+                                settingsWidget,
+                                [updateIndependentMetronomeFollowUi]() {
+                                      updateIndependentMetronomeFollowUi(true);
+                                      });
+
+                        connect(seq,
+                                &Seq::stopped,
+                                settingsWidget,
+                                [updateIndependentMetronomeFollowUi]() {
+                                      updateIndependentMetronomeFollowUi(false);
+                                      });
+
+                        updateIndependentMetronomeFollowUi(playAction->isChecked());
+
+                        connect(beatAccentsCheck,
+                                &QCheckBox::toggled,
+                                [this](bool checked) {
+                                      seq->setIndependentMetronomeBeatAccents(
+                                            checked);
+                                      });
+
+                        button->setMenu(menu);
+                        button->setPopupMode(QToolButton::MenuButtonPopup);
+
+                        transportTools->addWidget(button);
                         }
                   else {
                         QWidget* w = new AccessibleToolButton(transportTools, getAction(s));
@@ -1409,6 +1613,10 @@ MuseScore::MuseScore()
          );
       }
       addDockWidget(Qt::BottomDockWidgetArea, scoreCmpTool);
+
+      _debugLogDock = new DebugLogDock(this);
+      addDockWidget(Qt::BottomDockWidgetArea, _debugLogDock);
+      _debugLogDock->hide();
 
       if (MuseScore::unstable()) {
             scriptRecorder = new ScriptRecorderWidget(this, this);
@@ -2068,6 +2276,21 @@ MuseScore::MuseScore()
       menuDebug->addAction(a);
       a = getAction("qml-reload-source");
       menuDebug->addAction(a);
+
+      menuDebug->addSeparator();
+
+      _debugLogAction = new QAction(this);
+      _debugLogAction->setCheckable(true);
+      _debugLogAction->setChecked(_debugLogDock->isVisible());
+
+      connect(_debugLogAction, &QAction::toggled,
+              this, &MuseScore::showDebugLog);
+      connect(_debugLogDock, &QDockWidget::visibilityChanged,
+              _debugLogAction, &QAction::setChecked);
+
+      menuDebug->addAction(_debugLogAction);
+      Workspace::addActionAndString(_debugLogAction, "debug-log");
+
       Workspace::addMenuAndString(menuDebug, "menu-debug");
 
       //---------------------
@@ -2338,6 +2561,12 @@ void MuseScore::retranslate()
       setMenuTitles();
       _positionLabel->setToolTip(tr("Measure:Beat:Tick"));
       pref->setText(tr("&Preferences…"));
+
+      if (_debugLogAction)
+            _debugLogAction->setText(tr("Debug Log"));
+      if (_debugLogDock)
+            _debugLogDock->setWindowTitle(tr("Debug Log"));
+
       aboutAction->setText(tr("&About…"));
       aboutQtAction->setText(tr("About &Qt…"));
       aboutMusicXMLAction->setText(tr("About &MusicXML…"));
@@ -2372,6 +2601,7 @@ void MuseScore::retranslate()
 
       viewModeCombo->setAccessibleName(tr("View Mode"));
       viewModeCombo->setItemText(viewModeCombo->findData(int(LayoutMode::PAGE)), tr("Page View"));
+      viewModeCombo->setItemText(viewModeCombo->findData(int(LayoutMode::DOUBLE_PAGE)), tr("Double Page"));
       viewModeCombo->setItemText(viewModeCombo->findData(int(LayoutMode::LINE)), tr("Continuous View"));
       viewModeCombo->setItemText(viewModeCombo->findData(int(LayoutMode::SYSTEM)), tr("Single Page"));
 #ifdef NDEBUG
@@ -2475,9 +2705,16 @@ void MuseScore::updateMenus()
       updateMenu(menuHelp,        "menu-help",         "Help");
       updateMenu(menuTours,       "menu-tours",        "");
       updateMenu(menuDebug,       "menu-debug",        "Debug");
+
+      if (menuDebug && _debugLogAction && !menuDebug->actions().contains(_debugLogAction)) {
+            menuDebug->addSeparator();
+            menuDebug->addAction(_debugLogAction);
+            }
+
       connect(openRecent,     SIGNAL(aboutToShow()),       SLOT(openRecentMenu()));
       connect(openRecent,     SIGNAL(triggered(QAction*)), SLOT(selectScore(QAction*)));
       connect(menuWorkspaces, SIGNAL(aboutToShow()),       SLOT(showWorkspaceMenu()));
+
       setMenuTitles();
 #ifdef SCRIPT_INTERFACE
       addPluginMenuEntries();
@@ -2935,6 +3172,8 @@ void MuseScore::setCurrentScoreView(ScoreView* view)
       else
             cs = 0;
 
+      scorePageLayoutChanged();
+
       updateWindowTitle(cs);
       setWindowModified(cs ? cs->dirty() : false);
 
@@ -3019,17 +3258,21 @@ void MuseScore::setCurrentScoreView(ScoreView* view)
       getAction("split-measure")->setEnabled(cs->masterScore()->excerpts().size() == 0);
       getAction("concert-pitch")->setChecked(cs->styleB(Sid::concertPitch));
       updateUndoRedo();
-
-      setZoom(cv->zoomIndex(), cv->logicalZoomLevel());
       setPos(cs->inputPos());
       //showMessage(cs->filePath(), 2000);
+
       if (_navigator && _navigator->widget()) {
             navigator()->setScoreView(view);
             }
+
       if (timeline()) {
             timeline()->setScore(cs);
             timeline()->setScoreView(view);
             }
+
+      // Apply the zoom after Navigator/layout geometry has been established,
+      // so fit zoom and canvas constraints use the final ScoreView size
+      setZoom(cv->zoomIndex(), cv->logicalZoomLevel());
       ScoreAccessibility::instance()->updateAccessibilityInfo();
 
       MasterScore* master = cs->masterScore();
@@ -3069,24 +3312,9 @@ void MuseScore::setSplitScreen(bool val)
 
 void MuseScore::updateViewModeCombo()
       {
-      int idx;
-      switch (cs->layoutMode()) {
-            case LayoutMode::PAGE:
-                  idx = 0;
-                  break;
-            case LayoutMode::LINE:
-                  idx = 1;
-                  break;
-            case LayoutMode::SYSTEM:
-                  idx = 2;
-                  break;
-            case LayoutMode::FLOAT:
-                  idx = 3;
-                  break;
-            default:
-                  idx = 0;
-                  break;
-            }
+      int idx = viewModeCombo->findData(int(cs->layoutMode()));
+      if (idx < 0)
+            idx = 0;
       viewModeCombo->setCurrentIndex(idx);
       }
 
@@ -3236,6 +3464,16 @@ void MuseScore::showPageSettings()
       pageSettings->setScore(cs);
       pageSettings->show();
       pageSettings->raise();
+      }
+
+//---------------------------------------------------------
+//   showDebugLog
+//---------------------------------------------------------
+
+void MuseScore::showDebugLog(bool visible)
+      {
+      if (_debugLogDock)
+            reDisplayDockWidget(_debugLogDock, visible);
       }
 
 //---------------------------------------------------------
@@ -4291,6 +4529,17 @@ void MuseScore::focusScoreView()
 
 bool MuseScore::eventFilter(QObject *obj, QEvent *event)
       {
+      auto zoomBoxAcceptKey = [this](QKeyEvent* e) {
+            return zoomBox
+                  && zoomBox->lineEdit()->hasFocus()
+                  && !zoomBox->view()->isVisible()
+                  && (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter)
+                  && !(e->modifiers() & (Qt::ShiftModifier
+                                        | Qt::ControlModifier
+                                        | Qt::AltModifier
+                                        | Qt::MetaModifier));
+            };
+
       switch(event->type()) {
 #ifdef Q_OS_MAC
             case QEvent::FileOpen:
@@ -4312,6 +4561,13 @@ bool MuseScore::eventFilter(QObject *obj, QEvent *event)
             case QEvent::KeyPress:
                   {
                   QKeyEvent* e = static_cast<QKeyEvent*>(event);
+
+                  if (zoomBoxAcceptKey(e)) {
+                        zoomBox->acceptCurrentText();
+                        focusScoreView();
+                        return true;
+                        }
+
                   if(obj->isWidgetType() && e->key() == Qt::Key_Escape && e->modifiers() == Qt::NoModifier) {
                         // Close the search dialog when Escape is pressed:
                         if(_searchDialog != 0)
@@ -4333,19 +4589,31 @@ bool MuseScore::eventFilter(QObject *obj, QEvent *event)
                   break;
                   }
             case QEvent::ShortcutOverride:
+                  {
+                  QKeyEvent* ke = static_cast<QKeyEvent*>(event);
+
+                  if (zoomBoxAcceptKey(ke)) {
+                        // Don't let application shortcuts consume Enter while
+                        // editing the zoom box. The subsequent KeyPress event
+                        // will accept the zoom value and return focus to the score
+                        ke->accept();
+                        return true;
+                        }
+
                   if (qobject_cast<QMenu*>(obj)) {
                         // Disable one-letter shortcuts while in menu
                         // to prevent blocking menu mnemonics
-                        QKeyEvent* ke = static_cast<QKeyEvent*>(event);
                         const QString evtText = ke->text();
-                        const bool letterOrNumber = !ke->modifiers() && evtText.size() == 1 && evtText.at(0).isLetterOrNumber();
-
+                        const bool letterOrNumber = !ke->modifiers()
+                                                    && evtText.size() == 1
+                                                    && evtText.at(0).isLetterOrNumber();
                         if (letterOrNumber) {
                               ke->accept();
                               return true;
                               }
                         }
                   break;
+                  }
             default:
                   return QMainWindow::eventFilter(obj, event);
             }
@@ -5771,9 +6039,13 @@ const char* stateName(ScoreState s)
 void MuseScore::scorePageLayoutChanged()
       {
       if (mainWindow) {
-            mainWindow->setOrientation(MScore::verticalOrientation() ? Qt::Horizontal : Qt::Vertical);
+            const bool vertical = MScore::verticalOrientation()
+                                  || (cs && cs->doublePageMode());
+
+            mainWindow->setOrientation(vertical ? Qt::Horizontal : Qt::Vertical);
+
             if (navigatorScrollArea())
-                  navigatorScrollArea()->orientationChanged();
+                  navigatorScrollArea()->orientationChanged(vertical);
             }
       }
 
@@ -6781,6 +7053,8 @@ void MuseScore::cmd(QAction* a, const QString& cmd)
             ;
       else if (cmd == "countin")    // no action
             ;
+      else if (cmd == "independent-metronome")
+            seq->setIndependentMetronomeEnabled(a->isChecked());
       else if (cmd == "playback-speed-increase") {
             createPlayPanel();
             playPanel->increaseSpeed();
@@ -7134,9 +7408,13 @@ void MuseScore::switchLayoutMode(LayoutMode mode)
 
       cv->loopUpdate(getAction("loop")->isChecked());
 
-      if (mode != cs->layoutMode()) {
+      const bool layoutModeChanged = mode != cs->layoutMode();
+
+      if (layoutModeChanged) {
             cs->setLayoutMode(mode);
             cs->doLayout();
+
+            scorePageLayoutChanged();
             }
 
       // adjustCanvasPosition often tries to preserve Y position
@@ -7144,6 +7422,22 @@ void MuseScore::switchLayoutMode(LayoutMode mode)
       // also, better positioning is usually achieved if you start from the top
       // and there is really no better place to position canvas if we were all the way off page previously
       cv->pageTop();
+
+      if (layoutModeChanged) {
+            const ZoomIndex zoomIndex = cv->zoomIndex();
+
+            if (zoomIndex == ZoomIndex::ZOOM_PAGE_WIDTH
+                || zoomIndex == ZoomIndex::ZOOM_WHOLE_PAGE
+                || zoomIndex == ZoomIndex::ZOOM_TWO_PAGES) {
+                  cv->setLogicalZoom(zoomIndex, cv->calculateLogicalZoomLevel(zoomIndex));
+                  }
+            else {
+                  // Reapply the current zoom so the page-top position is
+                  // constrained against the newly laid-out pages
+                  cv->setLogicalZoom(zoomIndex, cv->logicalZoomLevel());
+                  }
+            }
+
       if (m && m != cs->firstMeasureMM())
             cv->adjustCanvasPosition(m, false);
       if (cv->noteEntryMode())
@@ -8298,6 +8592,16 @@ void MuseScore::init(QStringList& argv)
             QFile::remove(settings.fileName() + ".lock"); //forcibly remove lock
             QFile::remove(settings.fileName());
             settings.clear();
+            }
+
+      if (!MScore::noGui) {
+            QSettings settings;
+            // Need access to the preference prior to Preferences::init()
+            // to capture the initial messages
+            const bool debugLogEnabled =
+                  settings.value(PREF_APP_DEBUG_LOG_ENABLED, false).toBool();
+
+            setDebugLogMessageHandlerEnabled(debugLogEnabled);
             }
 
       // create local plugin directory

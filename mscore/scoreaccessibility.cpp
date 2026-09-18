@@ -1,5 +1,6 @@
 #include <QMainWindow>
 #include <QWidget>
+#include <QSizePolicy>
 
 #include "drumroll.h"
 #include "musescore.h"
@@ -203,6 +204,7 @@ ScoreAccessibility::ScoreAccessibility(QMainWindow* mainWindow) : QObject(mainWi
       {
       this->mainWindow = mainWindow;
       statusBarLabel = new QLabel(mainWindow->statusBar());
+      statusBarLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Ignored);
       mainWindow->statusBar()->addWidget(statusBarLabel);
       }
 

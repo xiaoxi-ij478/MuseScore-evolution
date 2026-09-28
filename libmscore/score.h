@@ -485,6 +485,7 @@ class Score : public QObject, public ScoreElement {
       SelectionFilter _selectionFilter;
       Audio* _audio { 0 };
       PlayMode _playMode { PlayMode::SYNTHESIZER };
+      bool _isPlaying { false };
 
       qreal _noteHeadWidth { 0.0 };       // cached value
       QString accInfo;                    ///< information about selected element(s) for use by screen-readers
@@ -582,6 +583,7 @@ class Score : public QObject, public ScoreElement {
 
    signals:
       void posChanged(POS, unsigned);
+      void partColorChanged();
       void playlistChanged();
 
    public:
@@ -627,6 +629,7 @@ class Score : public QObject, public ScoreElement {
       void cmdRemovePart(Part*);
       void cmdAddTie(bool addToChord = false);
       void cmdToggleTie();
+      Note* findOrCreateTieTarget(Note*);
       static std::vector<Note*> cmdTieNoteList(const Selection& selection, bool noteEntryMode);
       void cmdAddOttava(OttavaType);
       void cmdAddStretch(qreal);
@@ -791,6 +794,7 @@ class Score : public QObject, public ScoreElement {
       void deleteLater(ScoreElement* e)     { _updateState._deleteList.push_back(e); }
       void deletePostponed();
 
+      bool regroupVoicing(const Fraction& startTick, const Fraction& endTick, int staffIdx);
       void changeVoice(int);
       void cmdToggleMouseEntry(void);
 
@@ -1144,6 +1148,8 @@ class Score : public QObject, public ScoreElement {
       void setAudio(Audio* a)      { _audio = a;       }
       PlayMode playMode() const    { return _playMode; }
       void setPlayMode(PlayMode v) { _playMode = v;    }
+      void setIsPlaying(bool v);
+      bool isPlaying() const;
 
       int linkId();
       void linkId(int);

@@ -37,7 +37,7 @@ class PianoKeyItem : public QGraphicsPathItem {
       bool _pressed;
       bool _highlighted;
       bool _selected;
-      HPiano* piano;
+      HPiano* piano { nullptr };
 
       virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
       virtual void mousePressEvent(QGraphicsSceneMouseEvent*);
@@ -66,6 +66,9 @@ class HPiano : public QGraphicsView {
       QSet<int> _pressedPitches;
       QList<PianoKeyItem*> keys;
       qreal scaleVal;
+
+      bool _playbackActive { false };
+
       virtual void wheelEvent(QWheelEvent*);
       virtual bool event(QEvent* event);
       bool gestureEvent(QGestureEvent *event);
@@ -89,6 +92,8 @@ class HPiano : public QGraphicsView {
       void changeSelection(const Selection& selection);
       void updateAllKeys();
       QSet<int>& pressedPlaybackPitches() { return _pressedPlaybackPitches; }
+      void setPlaybackActive(bool active);
+      bool playbackActive() const { return _playbackActive; }
       virtual QSize sizeHint() const;
 
    public slots:
@@ -114,6 +119,9 @@ class PianoTools : public QDockWidget {
 
    public:
       PianoTools(QWidget* parent = 0);
+
+      void setPlaybackActive(bool active) { _piano->setPlaybackActive(active); }
+
       // User Interaction
       void pressPitch(int pitch)    { _piano->pressPitch(pitch);   }
       void releasePitch(int pitch)  { _piano->releasePitch(pitch); }

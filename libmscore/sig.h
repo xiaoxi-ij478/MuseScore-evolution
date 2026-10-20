@@ -52,7 +52,7 @@ class TimeSigFrac : public Fraction {
 
       // isBeatedCompound? Note: Conductors will beat the simple unit at slow tempos (<60 compound units per minute)
       // However, the meter is still considered to be compound (at least for our purposes).
-      bool isBeatedCompound(qreal tempo) const { return tempo2beatsPerMinute(tempo) >= 60.0; }
+      bool isBeatedCompound(qreal tempo) const { return tempo2beatsPerMinute(tempo) > 60.0; }
 
       int dUnitTicks()        const;
       int ticksPerMeasure()   const   { return numerator() * dUnitTicks(); }

@@ -666,7 +666,7 @@ volume</string>
            <number>10</number>
           </property>
           <property name="maximum">
-           <number>300</number>
+           <number>400</number>
           </property>
           <property name="singleStep">
            <number>5</number>
@@ -854,7 +854,7 @@ volume</string>
            <double>10.000000000000000</double>
           </property>
           <property name="maxValue" stdset="0">
-           <double>300.000000000000000</double>
+           <double>400.000000000000000</double>
           </property>
           <property name="lineStep" stdset="0">
            <double>1.000000000000000</double>

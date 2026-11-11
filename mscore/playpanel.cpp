@@ -255,7 +255,7 @@ void PlayPanel::setTempo(double val)
 
 void PlayPanel::setSpeed(double speed)
       {
-      const auto clampedRoundedVal = qBound(10, static_cast<int>((100.0 * speed) - std::remainder(100.0 * speed, 1.0)), 300);
+      const auto clampedRoundedVal = qBound(10, static_cast<int>((100.0 * speed) - std::remainder(100.0 * speed, 1.0)), 400);
       speedSlider->setValue(clampedRoundedVal);
       speedSpinBox->setValue(speedSlider->value());
       }
